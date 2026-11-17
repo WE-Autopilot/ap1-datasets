@@ -1,0 +1,30 @@
+# KITTI raw drives published to WEAP26/KITTI_mcap. build.py downloads,
+# verifies, converts (kitti2mcap) and adapts (adapter.py) each one.
+#
+# Files come from the bucket KITTI's own raw_data_downloader.sh uses. KITTI
+# publishes no checksums; the sha256 values pin the files we first downloaded
+# (2026-11-15) so everyone converts identical data.
+#
+# Quote dates and drive numbers: YAML reads 2011_09_26 as an integer.
+#
+# License: CC BY-NC-SA 3.0 (https://www.cvlibs.net/datasets/kitti/). Register
+# on the KITTI site. Published bags carry the same license (share-alike)
+# and the attribution in dataset_card.md.
+base_url: https://s3.eu-central-1.amazonaws.com/avg-kitti/raw_data
+kitti2mcap: kitti2mcap==0.1.1
+
+calib:
+  '2011_09_26':
+    sha256: e0108cfd000cf802c14ed94fba38601185c792e5640abba015a34b7a85b812e0
+
+drives:
+  # City, 15.8 s. Tracklets: Pedestrian, Cyclist, Car, Van.
+  - date: '2011_09_26'
+    drive: '0005'
+    sync_sha256: eaa3635b6ad6a707a8bab53ca38567ada8c78eb743e96d558497872fa436c136
+    tracklets_sha256: ae896496bcc762c4b0a489730b7d1b2a24513806f5e5bd4e2eeafffc86d486a4
+  # Residential, short. Tracklets: Pedestrian, Cyclist, Car.
+  - date: '2011_09_26'
+    drive: '0060'
+    sync_sha256: ec2c400397df24cf6c6d26d0b4e3bbe17793f509d8e0aad775e20601f90455e9
+    tracklets_sha256: bdb928477c24bae1cee81f0554983d7e2f0ad787e94d2fd75aeebe6a537bc410

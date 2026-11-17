@@ -1,0 +1,57 @@
+# adapter.py: kitti2mcap output -> AP1.26 sensing-contract bag.
+#
+# Input names are what kitti2mcap 0.1.1 writes. Output names follow the AP1.26
+# ICD (Interface Records) and the Perception Architecture interface table, and
+# match mapping's filtered CARLA bags (simulation/README.md), so perception
+# reads KITTI, CARLA and kart bags without code changes.
+input:
+  topics:
+    image: /kitti/camera_color_left/image_raw
+    camera_info: /kitti/camera_color_left/camera_info
+    lidar: /kitti/velodyne_points
+    imu: /kitti/imu
+    tf: /tf
+    tf_static: /tf_static
+  frames:
+    base: base_link                  # kitti2mcap puts base_link at the OXTS/IMU unit
+    lidar: velodyne
+    camera_optical: camera_color_left  # rectified left colour camera, optical axes
+    map: map
+
+output:
+  topics:
+    image: /sensing/camera/front/image_raw          # ICD #6
+    camera_info: /sensing/camera/front/camera_info  # ICD #19
+    lidar: /sensing/lidar/pointcloud                # ICD #7
+    imu: /sensing/imu/data                          # ICD #15
+    ground_truth_tf: /ground_truth/tf               # off /tf: only NDT/EKF own map/odom (ICD #12)
+    ground_truth_odometry: /ground_truth/odometry
+    ground_truth_objects: /ground_truth/objects     # vision_msgs/Detection3DArray, base_link
+  frames:
+    base: base_link
+    lidar: lidar_link                # same as mapping's filtered bags
+    imu: imu_link                    # same as mapping's filtered bags
+    # Camera frames are not in the ICD yet; camera_link is the mount key in
+    # mapping's simulation/carla_sensors.py. Perception projects with
+    # base_link -> camera_link -> camera_optical_frame from /tf_static.
+    camera: camera_link              # body axes: x forward, y left, z up (REP 103)
+    camera_optical: camera_optical_frame  # z forward, x right, y down; image frame_id
+    map: kitti_map                   # parent of base_link on /ground_truth/tf
+
+lidar:
+  sweep_period_s: 0.1                # HDL-64E at 10 Hz
+  counter_clockwise: true            # KITTI raw devkit readme: rotates counter-clockwise
+
+ground_truth:
+  # Keep only boxes at least partly inside the camera image: requirements are
+  # stated for the front camera's range and FOV.
+  only_visible_in_camera: true
+  # KITTI class -> ap1_msgs/ObjectClass string. Classes not listed are not
+  # scored: Car, Van, Truck, Tram (the ODD has no vehicle agents).
+  # ObjectClass has no cyclist constant yet, so cyclists count as unknown.
+  classes:
+    Pedestrian: pedestrian
+    Person_sitting: pedestrian
+    Person (sitting): pedestrian     # spelling in the raw devkit readme
+    Cyclist: unknown
+    Misc: unknown
